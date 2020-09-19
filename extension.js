@@ -21,6 +21,7 @@ function activate(context) {
   let disposable = vscode.commands.registerCommand(
     "extension.generator",
     function (uri) {
+      console.log("待处理目录", uri);
       const str = gettree(uri.fsPath);
       vscode.env.clipboard.writeText(str);
       vscode.window.showInformationMessage(`目录树已复制到剪贴板!`);

@@ -2,7 +2,7 @@
   "name": "dir-tree-generator",
   "displayName": "dir tree generator",
   "description": "快速生成文件目录树的插件,使用.gitignore或.treeignore忽略目录 支持md文档折叠",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.10.0"
   },
@@ -39,6 +39,7 @@
     }
   },
   "scripts": {
+    "build": "vsce package",
     "lint": "eslint .",
     "pretest": "yarn run lint",
     "test": "node ./node_modules/mocha/bin/mocha"

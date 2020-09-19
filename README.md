@@ -2,20 +2,22 @@
 
 快速生成文件目录树的vscode插件
 
-```js
-  js
-  ├─ css              // css
-  │  ├─ common.css    // common.css
-  │  └─ details.css   
-  ├─ images           
-  │  └─ logo.png      //
-  └─ js               
-     ├─ lib           
-     │  └─ jquery.js  //
-     ├─ common.js     
-     ├─ home.js       
-     └─ pages.js      //
+```dir-tree-generator  
+dir-tree-generator     
+├─ test                
+│  └─ tree.test.js     
+├─ CHANGELOG.md        
+├─ extension.js        
+├─ icon.png            
+├─ jsconfig.json       
+├─ LICENSE             
+├─ package.json        
+├─ README.md           
+├─ tree.js             
+└─ yarn.lock           
 ```
+---               
+
 
 ## Features
 
