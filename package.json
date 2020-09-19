@@ -2,7 +2,7 @@
   "name": "dir-tree-generator",
   "displayName": "dir tree generator",
   "description": "快速生成文件目录树的插件,使用.gitignore或.treeignore忽略目录 支持md文档折叠",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "engines": {
     "vscode": "^1.10.0"
   },
@@ -28,6 +28,25 @@
         "title": "复制目录树"
       }
     ],
+    "configuration":{
+      "title": "",
+      "properties": {
+        "dir_tree.default_ignores":{
+          "type":"array",
+          "default":[".*"],
+          "description": "默认忽略规则"
+        },
+        "dir_tree.format":{
+          "type": "string",
+          "default":"markdown",
+          "enum": [
+            "markdown",
+            "txt"
+          ],
+          "description": "生成的格式，markdown或者txt纯文本"
+        }
+      }
+    },
     "menus": {
       "explorer/context": [
         {

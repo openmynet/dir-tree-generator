@@ -14,12 +14,18 @@ function ignores_from_file(dir = "", files = []) {
     const stat = fs.statSync(f_path);
     if (stat.isFile()) {
       let content = fs.readFileSync(f_path, "utf-8");
-      let igs = content.split(/\r?\n/).map((v) => {
-        return v.trim();
-      });
+      let igs = content
+        .split(/\r?\n/)
+        .map((v) => {
+          return v.trim();
+        })
+        .filter((v) => !!v);
       ignores = ignores.concat(igs);
     }
   });
+  if (!ignores.length) {
+    return null;
+  }
   return ignore().add(ignores);
 }
 /**
@@ -44,80 +50,94 @@ function render(name, isLast, deep, file_path) {
  * @param {string} target
  * @param {array} deep
  */
-function parser(target, deep = [], root) {
-  let relative_path = path.relative(root, target);
+function parser(target, deep = [], rules = []) {
+  let root = target; // path.dirname(target);
   let branches = [];
   let children = fs.readdirSync(target);
   //  get ignore rules
   let ignore_files = children.filter((v) => {
     return IGNOREFILES.includes(v);
   });
-  let ignore_rules = ignores_from_file(target, ignore_files);
+  let rule = ignores_from_file(target, ignore_files);
+  if (rule) {
+    rules.push({
+      root,
+      rule,
+    });
+  }
 
   // get files and dirs igro
-  let sub_dirs = [];
-  let sub_files = [];
+  let folders = [];
+  let files = [];
   children.forEach(function (v) {
     let dir = path.join(target, v);
-    let stat = fs.statSync(dir);
-    let ig_test = path.join(relative_path, dir);
-    let flag = ignore_rules.ignores(ig_test);
-    if (!flag) {
+    let is_ignore = false;
+    for (let i = 0; i < rules.length; i++) {
+      const { rule, root } = rules[i];
+      let relative_path = path.relative(root, dir);
+      let ig_test = path.join(relative_path, v);
+      if (ig_test.startsWith("..")) {
+        continue;
+      }
+      if (rule.ignores(ig_test)) {
+        is_ignore = true;
+        break;
+      }
+    }
+    if (!is_ignore) {
+      let stat = fs.statSync(dir);
       if (stat.isFile()) {
-        sub_files.push(v);
+        files.push(v);
       } else {
-        sub_dirs.push(v);
+        folders.push(v);
       }
     }
   });
   // get children
-  sub_dirs.forEach(function (v, i) {
+  folders.forEach(function (v, i) {
     let dir = path.join(target, v);
-    let isLast = i === sub_dirs.length - 1 && sub_files.length === 0;
+    let isLast = i === folders.length - 1 && files.length === 0;
     branches.push(render(v, isLast, deep, dir));
 
-    let sub_branches = parser(dir, [...deep, !isLast], target);
+    let sub_branches = parser(dir, [...deep, !isLast], rules);
     branches = branches.concat(sub_branches);
   });
   // render children
-  sub_files.forEach(function (v, i) {
+  files.forEach(function (v, i) {
     let file = path.join(target, v);
-    let isLast = i === sub_files.length - 1;
+    let isLast = i === files.length - 1;
     branches.push(render(v, isLast, deep, file));
   });
-
+  // ignore filter
   branches.forEach((v) => {
     let rel = path.relative(target, v.path);
     v.rel = rel;
   });
-  return branches.filter((v) => {
-    return !ignore_rules.ignores(v.rel);
-  });
+  return branches;
 }
 
 /**
  * 目录树处理器
  * @param {string} dir 需要处理的目录
  */
-function dir_tree_processor(dir) {
-  let root = path.dirname(dir);
+function dir_tree_processor(dir, IGNORERULES = []) {
   let branches = [
-    {
-      name: path.basename(dir),
-      println: "```" + path.basename(dir),
-    },
     {
       name: path.basename(dir),
       println: path.basename(dir),
     },
   ];
-
-  let sub_branches = parser(dir, [], root);
+  let rules = [];
+  if (IGNORERULES.length) {
+    rules = [
+      {
+        root: dir,
+        rule: ignore().add(IGNORERULES),
+      },
+    ];
+  }
+  let sub_branches = parser(dir, [], rules);
   branches = branches.concat(sub_branches);
-  branches.push({
-    name: "end",
-    println: "```\r\n---",
-  });
   return branches.map((v) => {
     let { name, println } = v;
     return { name, println };
